@@ -1,0 +1,8 @@
+node_modules/
+server/data/
+dist/
+*.zip
+*.log
+.env
+# مجلد الملفات الجاهزة للرفع (يُنشأ بالأمر node build.js)
+جاهز للرفع/
