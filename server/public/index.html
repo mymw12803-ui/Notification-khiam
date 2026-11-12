@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>منظومة الإشعارات</title>
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script>
+  try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+
+<!-- ============ تسجيل الدخول ============ -->
+<div class="login hidden" id="login">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <img class="logo" src="icon.png" alt="">
+    <h1>منظومة الإشعارات</h1>
+    <p>لوحة متابعة الموظفين وإرسال الإشعارات والإنذارات</p>
+    <div class="field">
+      <label for="pw">كلمة المرور</label>
+      <input class="input" id="pw" type="password" autocomplete="current-password" required>
+    </div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn primary" type="submit" style="justify-content:center">دخول</button>
+  </form>
+</div>
+
+<!-- ============ التطبيق ============ -->
+<div class="app hidden" id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="icon.png" alt="">
+      <div><b>منظومة الإشعارات</b><small>لوحة الإدارة</small></div>
+    </div>
+    <button class="nav on" data-view="live"><span data-i="activity"></span>المتابعة الحيّة</button>
+    <button class="nav" data-view="compose"><span data-i="send"></span>إرسال إشعار</button>
+    <button class="nav" data-view="log"><span data-i="list"></span>الرسائل والردود<span class="count hidden" id="navPending"></span></button>
+    <button class="nav" data-view="reports"><span data-i="chart"></span>التقارير</button>
+    <button class="nav" data-view="employees"><span data-i="users"></span>الموظفون</button>
+    <button class="nav" data-view="settings"><span data-i="settings"></span>الإعدادات والقواعد</button>
+    <div class="spacer"></div>
+    <div class="conn" id="conn"><span class="dot"></span><span id="connText">غير متصل</span></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h2 id="viewTitle">المتابعة الحيّة</h2>
+      <span class="clock num" id="clock"></span>
+      <button class="btn icon ghost" id="soundBtn" title="صوت التنبيهات"></button>
+      <button class="btn icon ghost" id="themeBtn" title="الوضع الليلي/النهاري"></button>
+      <div class="bell-wrap">
+        <button class="btn icon ghost" id="bellBtn" title="التنبيهات"><span data-i="bell"></span></button>
+        <span class="bell-badge hidden" id="bellBadge"></span>
+      </div>
+      <button class="btn primary" id="quickSend"><span data-i="send"></span>إرسال إشعار</button>
+      <button class="btn icon ghost" id="logoutBtn" title="خروج"><span data-i="logout"></span></button>
+    </header>
+
+    <!-- المتابعة الحيّة -->
+    <section class="view" id="view-live">
+      <div class="kpis" id="kpis"></div>
+      <div class="toolbar">
+        <div class="legend" id="liveLegend" style="margin:0"></div>
+        <div class="grow"></div>
+        <input class="input" id="empSearch" placeholder="بحث عن موظف..." style="width:220px">
+      </div>
+      <div class="grid" id="empGrid"></div>
+    </section>
+
+    <!-- الإرسال -->
+    <section class="view hidden" id="view-compose">
+      <div class="compose">
+        <div class="panel form">
+          <div class="field">
+            <span class="lbl">إلى</span>
+            <div class="chips" id="toChips"></div>
+          </div>
+          <div class="field">
+            <span class="lbl">نوع الإشعار وطريقة ظهوره</span>
+            <div class="types" id="typeGrid"></div>
+          </div>
+          <div class="field">
+            <label for="tplSel">قالب جاهز (اختياري)</label>
+            <select class="input" id="tplSel"></select>
+          </div>
+          <div class="field">
+            <label for="cTitle">العنوان</label>
+            <input class="input" id="cTitle" maxlength="200" placeholder="مثال: برجاء الرد على العملاء">
+          </div>
+          <div class="field">
+            <label for="cBody">نص الرسالة</label>
+            <textarea class="input" id="cBody" maxlength="5000" placeholder="اكتب الرسالة..."></textarea>
+          </div>
+          <div id="typeOpts"></div>
+          <div class="row2">
+            <div class="field">
+              <label for="cSound">الصوت</label>
+              <select class="input" id="cSound">
+                <option value="">تلقائي حسب النوع</option>
+                <option value="none">بدون صوت</option>
+                <option value="soft">تنبيه خفيف</option>
+                <option value="bell">جرس</option>
+                <option value="alarm">صفارة إنذار</option>
+              </select>
+            </div>
+            <div class="field" id="colorField">
+              <label for="cColor">اللون</label>
+              <select class="input" id="cColor">
+                <option value="">تلقائي</option>
+                <option value="blue">أزرق</option>
+                <option value="green">أخضر</option>
+                <option value="orange">برتقالي</option>
+                <option value="red">أحمر</option>
+                <option value="purple">بنفسجي</option>
+              </select>
+            </div>
+          </div>
+          <div class="opts">
+            <label class="check" id="osOpt"><input type="checkbox" id="cOs"> أظهره أيضاً كإشعار ويندوز (خارج المتصفح)</label>
+            <label class="check"><input type="checkbox" id="cSpeak"> قراءة الرسالة بصوت</label>
+          </div>
+          <div class="send-row">
+            <span class="hint" id="sendHint"></span>
+            <div class="grow"></div>
+            <button class="btn" id="previewBtn"><span data-i="eye"></span>معاينة</button>
+            <button class="btn primary" id="sendBtn"><span data-i="send"></span>إرسال</button>
+          </div>
+        </div>
+        <div class="preview-wrap">
+          <div class="browser">
+            <div class="browser-top"><i></i><i></i><i></i><span class="url">business.example.com/inbox — معاينة شكل الإشعار عند الموظف</span></div>
+            <iframe id="previewFrame" title="معاينة"></iframe>
+          </div>
+          <div class="preview-note" id="previewNote">جرّب الأزرار داخل المعاينة لترى كيف سيصلك رد الموظف.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- السجل -->
+    <section class="view hidden" id="view-log">
+      <div class="toolbar">
+        <div class="tabs" id="logTabs">
+          <button data-f="all" class="on">الكل</button>
+          <button data-f="pending">بانتظار الرد</button>
+          <button data-f="replies">الردود</button>
+          <button data-f="warn">الإنذارات والمخالفات</button>
+          <button data-f="auto">التلقائية</button>
+        </div>
+        <div class="grow"></div>
+        <select class="input" id="logEmp" style="width:180px"></select>
+        <input class="input" id="logSearch" placeholder="بحث في الرسائل..." style="width:200px">
+      </div>
+      <div class="msgs" id="msgList"></div>
+    </section>
+
+    <!-- التقارير -->
+    <section class="view hidden" id="view-reports">
+      <div class="toolbar">
+        <label class="lbl" for="repDate">اليوم</label>
+        <input class="input" type="date" id="repDate" style="width:auto">
+        <button class="btn" id="repRefresh"><span data-i="refresh"></span>تحديث</button>
+        <div class="grow"></div>
+        <button class="btn" id="repCsv"><span data-i="download"></span>تصدير Excel (CSV)</button>
+      </div>
+      <div class="panel">
+        <h3>ملخص اليوم لكل موظف</h3>
+        <div class="table-wrap"><table class="tbl" id="repTable"></table></div>
+        <p class="hint" style="margin:10px 0 0">«غير متصل» يُحسب داخل أوقات الدوام فقط. «ردود مرسلة» تقدير لعدد مرات الإرسال داخل ميتا. «سرعة الرد» = متوسط الوقت من ظهور رسالة الإدارة حتى رد الموظف.</p>
+      </div>
+      <div class="panel">
+        <h3>الخط الزمني لليوم <span class="grow"></span></h3>
+        <div class="legend" id="repLegend"></div>
+        <div id="repTimeline"></div>
+      </div>
+    </section>
+
+    <!-- الموظفون -->
+    <section class="view hidden" id="view-employees">
+      <div class="panel">
+        <h3><span data-i="plus"></span>إضافة موظف</h3>
+        <form class="toolbar" id="addEmpForm" style="margin:0">
+          <input class="input" id="newEmpName" placeholder="اسم الموظف" maxlength="60" style="max-width:320px" required>
+          <button class="btn primary" type="submit"><span data-i="plus"></span>إضافة</button>
+        </form>
+      </div>
+      <div class="panel">
+        <h3>الموظفون وأكواد الربط</h3>
+        <div class="table-wrap"><table class="tbl" id="empTable"></table></div>
+      </div>
+      <div class="panel">
+        <h3><span data-i="plug"></span>طريقة تثبيت الإضافة عند كل موظف</h3>
+        <ol class="steps">
+          <li>ثبّت الإضافة من <b>رابط متجر كروم</b> الخاص بك (بعد نشرها) بالضغط على «إضافة إلى Chrome».<br><span class="hint">أو يدوياً: افتح <span class="code">chrome://extensions</span> ← فعّل Developer mode ← Load unpacked ← اختر مجلد extension.</span></li>
+          <li>ستفتح صفحة الربط تلقائياً: أدخل <b>عنوان الخادم</b> (إن لم يكن مكتوباً) و<b>كود الموظف</b> ثم اضغط «حفظ واتصال».</li>
+          <li>ثبّت أيقونة الإضافة بجوار شريط العنوان (رمز الدبوس) ليرى الموظف حالة الاتصال.</li>
+        </ol>
+        <div class="lbl" style="margin-top:12px">عنوان الخادم (اختر العنوان الذي يصل إليه جهاز الموظف):</div>
+        <div class="addr" id="addrList"></div>
+        <p class="hint">إذا كان الموظفون خارج الشبكة المحلية (يعملون من المنزل) راجع ملف «دليل التشغيل» لتشغيل الخادم على الإنترنت.</p>
+      </div>
+    </section>
+
+    <!-- الإعدادات -->
+    <section class="view hidden" id="view-settings">
+      <div class="settings-grid">
+        <div class="panel">
+          <h3>عام</h3>
+          <div class="field"><label for="sSender">اسم المرسل (يظهر للموظفين)</label><input class="input" id="sSender" maxlength="60"></div>
+          <div class="row2" style="margin-top:12px">
+            <div class="field"><label for="sWorkStart">بداية الدوام</label><input class="input" type="time" id="sWorkStart"></div>
+            <div class="field"><label for="sWorkEnd">نهاية الدوام</label><input class="input" type="time" id="sWorkEnd"></div>
+          </div>
+          <div class="field" style="margin-top:12px"><label for="sIdle">يُعتبر الموظف «خاملاً» بعد (ثانية) بدون حركة ماوس/كيبورد</label><input class="input" type="number" min="15" max="3600" id="sIdle"></div>
+          <p class="hint">القواعد التلقائية تعمل داخل أوقات الدوام فقط.</p>
+        </div>
+        <div class="panel">
+          <h3>تصنيف المواقع</h3>
+          <p class="hint" style="margin-top:-6px">موقع في كل سطر. يمكن تحديد مسار مثل <span class="ltr">facebook.com/latest</span>. الترتيب: ميتا ← عمل ← يوتيوب ← تواصل.</p>
+          <div class="field"><label for="sCatMeta">ميتا بيزنس (عمل)</label><textarea class="input ltr" id="sCatMeta" rows="4"></textarea></div>
+          <div class="field" style="margin-top:10px"><label for="sCatWork">مواقع عمل أخرى</label><textarea class="input ltr" id="sCatWork" rows="2"></textarea></div>
+          <div class="field" style="margin-top:10px"><label for="sCatYt">يوتيوب</label><textarea class="input ltr" id="sCatYt" rows="2"></textarea></div>
+          <div class="field" style="margin-top:10px"><label for="sCatSocial">تواصل اجتماعي</label><textarea class="input ltr" id="sCatSocial" rows="3"></textarea></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3><span data-i="zap"></span>القواعد التلقائية (تنبيهات ذكية)</h3>
+        <p class="hint" style="margin-top:-6px">عند تحقق الشرط يصلك تنبيه فوري في اللوحة، ويمكن أيضاً إرسال إشعار تلقائي للموظف.</p>
+        <div class="rules" id="rulesBox"></div>
+      </div>
+      <div class="panel">
+        <h3>القوالب الجاهزة <span class="grow"></span><button class="btn sm" id="addTpl" type="button"><span data-i="plus"></span>قالب</button></h3>
+        <div id="tplBox"></div>
+      </div>
+      <div class="toolbar" style="margin-top:16px">
+        <button class="btn primary" id="saveSettings"><span data-i="check"></span>حفظ الإعدادات</button>
+        <span class="hint" id="settingsMsg"></span>
+      </div>
+      <div class="panel">
+        <h3>تغيير كلمة المرور</h3>
+        <form class="toolbar" id="pwForm" style="margin:0">
+          <input class="input" type="password" id="pwCur" placeholder="كلمة المرور الحالية" style="max-width:220px" required autocomplete="current-password">
+          <input class="input" type="password" id="pwNew" placeholder="كلمة المرور الجديدة" style="max-width:220px" required autocomplete="new-password">
+          <button class="btn" type="submit">تغيير</button>
+          <span class="hint" id="pwMsg"></span>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- لوحة التنبيهات -->
+<div class="events hidden" id="events">
+  <div class="events-h">
+    <b>التنبيهات</b>
+    <button class="btn sm ghost" id="notifPerm">تفعيل إشعارات سطح المكتب</button>
+    <button class="btn sm ghost" id="clearEvents" title="مسح الكل"><span data-i="trash"></span></button>
+  </div>
+  <div class="events-list" id="eventsList"></div>
+</div>
+
+<div id="drawerRoot"></div>
+<div class="toasts" id="toasts"></div>
+<div class="tip hidden" id="tip"></div>
+
+<script src="/ext/sounds.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
